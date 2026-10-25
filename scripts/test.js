@@ -19,6 +19,7 @@ const createEl = (tag) => {
     classList: {
       add() {},
       remove() {},
+      toggle() { return false; },
       contains() { return false; }
     },
     querySelectorAll() { return []; },
@@ -37,7 +38,8 @@ globalThis.document = {
   documentElement: stub(),
   querySelector: () => stub(),
   querySelectorAll: () => [],
-  createElement: (tag) => createEl(tag)
+  createElement: (tag) => createEl(tag),
+  addEventListener() {}
 };
 globalThis.window = {
   print() {},
@@ -241,6 +243,36 @@ if (hasLocalExports) {
     } else {
       console.log('PASS: tdg.cfg IOADDRESS 56 Slot 1 verified: 8 channels (I2500.0..I2500.7), symbol:', dev56Slot1.channels[0].hwSymbol);
     }
+  }
+
+  console.log('\n--- 6. Testing new UI enhancements (Sidebar toggle, shortcuts, capacity breakdown) ---');
+  if (typeof api.toggleSidebar !== 'function' || typeof api.showShortcutsModal !== 'function') {
+    console.error('FAIL: UI methods toggleSidebar or showShortcutsModal missing on API!');
+    allOk = false;
+  } else {
+    api.toggleSidebar();
+    api.showShortcutsModal(true);
+    api.showShortcutsModal(false);
+    console.log('PASS: toggleSidebar and showShortcutsModal callable without error');
+  }
+
+  const breakdown = api.ioBreakdown(sampleProj);
+  if (!breakdown || !breakdown.DI || breakdown.DI.total !== 8) {
+    console.error('FAIL: ioBreakdown did not compute correct DI count!', breakdown);
+    allOk = false;
+  } else {
+    console.log('PASS: ioBreakdown verified (DI total:', breakdown.DI.total, ')');
+  }
+
+  const enTitle = api.i18n.t('shortcutsTitle');
+  api.i18n.setLanguage('cs');
+  const csTitle = api.i18n.t('shortcutsTitle');
+  api.i18n.setLanguage('en');
+  if (!enTitle || !csTitle || enTitle === csTitle) {
+    console.error('FAIL: i18n shortcutsTitle translation mismatch!', { enTitle, csTitle });
+    allOk = false;
+  } else {
+    console.log('PASS: i18n verified for new UI features (EN:', enTitle, '| CS:', csTitle, ')');
   }
 } else {
   console.log('\n--- 2. Testing synthetic Cross-Reference matching & reserve detection ---');

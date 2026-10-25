@@ -4,6 +4,7 @@
   "description": "Client-side STEP 7 / PCS 7 HW Config & Cross-References Analyzer",
   "main": "index.html",
   "scripts": {
+    "dev": "node scripts/server.js",
     "build": "node scripts/bundle.js",
     "test": "node scripts/test.js"
   },

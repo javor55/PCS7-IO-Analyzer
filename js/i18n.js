@@ -220,7 +220,29 @@
       testXrefBindings: 'Cross-References bindings',
       testHwRecognition: 'HW module recognition',
       testModelConfidence: 'Channel model confidence',
-      testRioConflicts: 'RIO context address conflicts'
+      testRioConflicts: 'RIO context address conflicts',
+      // UI enhancements
+      toggleSidebar: 'Filters',
+      capacityHeading: 'I/O Capacity & Utilization',
+      capacitySub: 'Signal distribution across digital and analog I/O',
+      filterChannelsPlaceholder: '🔍 Filter channels in this view...',
+      copyAddress: 'Copy address',
+      copySymbol: 'Copy symbol',
+      copiedToClipboard: 'Copied: {0}',
+      btnFindSpares: 'Find Spares',
+      copyCandidates: 'Copy Candidates',
+      candidatesCopied: '{0} spare channels copied to clipboard',
+      shortcutsTitle: 'Keyboard Shortcuts',
+      shortcutSearch: 'Focus search',
+      shortcutDashboard: 'Overview dashboard',
+      shortcutSidebar: 'Toggle filters sidebar',
+      shortcutEscape: 'Clear / Close dialog',
+      shortcutHelp: 'Keyboard shortcuts',
+      close: 'Close',
+      capacityUsed: 'used',
+      capacityReserve: 'reserve',
+      capacityNamed: 'named',
+      capacityUnknown: 'unverified'
     },
     cs: {
       appName: 'PCS 7 I/O Analyzer',
@@ -436,7 +458,29 @@
       testXrefBindings: 'Přiřazení Cross-References',
       testHwRecognition: 'Rozpoznání HW modulů',
       testModelConfidence: 'Jistota kanálového modelu',
-      testRioConflicts: 'Konflikty v kontextu RIO'
+      testRioConflicts: 'Konflikty v kontextu RIO',
+      // UI enhancements
+      toggleSidebar: 'Filtry',
+      capacityHeading: 'Kapacita a využití I/O',
+      capacitySub: 'Rozdělení obsazenosti digitálních a analogových signálů',
+      filterChannelsPlaceholder: '🔍 Rychlý filtr kanálů v této kartě...',
+      copyAddress: 'Kopírovat adresu',
+      copySymbol: 'Kopírovat symbol',
+      copiedToClipboard: 'Zkopírováno: {0}',
+      btnFindSpares: 'Najít rezervy',
+      copyCandidates: 'Kopírovat kandidáty',
+      candidatesCopied: '{0} rezervních kanálů zkopírováno',
+      shortcutsTitle: 'Klávesové zkratky',
+      shortcutSearch: 'Aktivovat vyhledávání',
+      shortcutDashboard: 'Celkový přehled',
+      shortcutSidebar: 'Přepnout panel filtrů',
+      shortcutEscape: 'Zrušit výběr / Zavřít',
+      shortcutHelp: 'Klávesové zkratky',
+      close: 'Zavřít',
+      capacityUsed: 'obsazeno',
+      capacityReserve: 'rezerva',
+      capacityNamed: 'pojmenováno',
+      capacityUnknown: 'neověřeno'
     }
   };
 

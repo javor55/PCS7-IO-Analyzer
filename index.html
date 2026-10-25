@@ -17,6 +17,7 @@
       </div>
     </div>
     <div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
+      <button id="shortcutsBtn" class="nav-action" style="background:rgba(255,255,255,0.15);color:#fff;border-color:rgba(255,255,255,0.3);font-weight:600;padding:4px 9px;border-radius:12px;font-size:12px;cursor:pointer;" title="Keyboard shortcuts (?) / Klávesové zkratky">⌨️ ?</button>
       <button id="themeToggle" class="nav-action" style="background:rgba(255,255,255,0.15);color:#fff;border-color:rgba(255,255,255,0.3);font-weight:600;padding:4px 9px;border-radius:12px;font-size:12px;cursor:pointer;" title="Toggle dark/light mode / Přepnout tmavý/světlý režim">🌙</button>
       <button id="langToggle" class="nav-action" style="background:rgba(255,255,255,0.15);color:#fff;border-color:rgba(255,255,255,0.3);font-weight:600;padding:4px 9px;border-radius:12px;font-size:11px;" title="Switch language / Přepnout jazyk">🌐 EN</button>
       <span class="version">v0.12</span>
@@ -30,6 +31,7 @@
         <input id="files" type="file" accept=".cfg,.txt,.csv,.json" multiple>
       </label>
       <button id="showDashboard" class="nav-action">Overview</button>
+      <button id="btnFindSpares" class="nav-action" title="Find Spare I/O Capacity">🎯 <span id="btnFindSparesText">Find Spares</span></button>
       <button id="runTests" class="nav-action">Data Health</button>
     </div>
     <div class="search-wrap">
@@ -47,6 +49,7 @@
       <button id="exportCatalog">Catalogue</button>
       <button id="save">Save Project</button>
     </div>
+    <button id="toggleSidebar" class="nav-action" style="margin-left:auto;" title="Toggle filters panel (Ctrl+B)">⚙️ <span id="toggleSidebarText">Filters</span></button>
   </div>
 
   <main id="drop" class="layout">
@@ -179,6 +182,23 @@
   </div>
 
   <div id="toasts" class="toasts"></div>
+
+  <!-- Keyboard Shortcuts Modal -->
+  <div id="shortcutsModal" class="modal-overlay" hidden>
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="shortcutsHeading">⌨️ Keyboard Shortcuts</h3>
+        <button type="button" class="modal-close-btn" id="closeShortcutsBtn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="shortcut-row"><div class="keys"><kbd>/</kbd> or <kbd>Ctrl</kbd>+<kbd>F</kbd></div><span id="shSearchText">Focus search</span></div>
+        <div class="shortcut-row"><div class="keys"><kbd>Ctrl</kbd>+<kbd>B</kbd></div><span id="shSidebarText">Toggle filters sidebar</span></div>
+        <div class="shortcut-row"><div class="keys"><kbd>Alt</kbd>+<kbd>D</kbd> or <kbd>Alt</kbd>+<kbd>O</kbd></div><span id="shOverviewText">Open overview dashboard</span></div>
+        <div class="shortcut-row"><div class="keys"><kbd>Esc</kbd></div><span id="shEscapeText">Clear selection / filter / close dialog</span></div>
+        <div class="shortcut-row"><div class="keys"><kbd>?</kbd></div><span id="shHelpText">Show keyboard shortcuts</span></div>
+      </div>
+    </div>
+  </div>
 
   <!-- Modular Scripts -->
   <script src="js/i18n.js"></script>

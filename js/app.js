@@ -81,6 +81,100 @@
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   }
 
+  function copyToClipboard(text, msg = t('copiedToClipboard')) {
+    if (!text) return;
+    if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => {
+        toast(msg, 'success');
+      }).catch(() => {
+        fallbackCopy(text, msg);
+      });
+    } else {
+      fallbackCopy(text, msg);
+    }
+  }
+
+  function fallbackCopy(text, msg) {
+    try {
+      if (typeof document === 'undefined') return;
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      document.execCommand('copy');
+      ta.remove();
+      toast(msg, 'success');
+    } catch {
+      toast(String(text), 'info');
+    }
+  }
+
+  function toggleSidebar() {
+    if (typeof document === 'undefined') return;
+    const layout = $('.layout');
+    const right = $('.right');
+    if (!layout || !right) return;
+    const isWide = typeof window !== 'undefined' ? window.innerWidth >= 1600 : true;
+    if (isWide) {
+      layout.classList.toggle('sidebar-collapsed');
+    } else {
+      right.classList.toggle('drawer-open');
+    }
+  }
+
+  function showShortcutsModal(show = true) {
+    const modal = $('#shortcutsModal');
+    if (!modal) return;
+    modal.hidden = !show;
+  }
+
+  function capacityBarsHtml(node, title = t('capacityHeading'), sub = t('capacitySub')) {
+    const bd = Analyzer.ioBreakdown(node);
+    const types = ['DI', 'DO', 'AI', 'AO'];
+    if (bd.DEV && bd.DEV.total > 0) types.push('DEV');
+    const totalAll = types.reduce((acc, k) => acc + bd[k].total, 0);
+    if (totalAll === 0) return '';
+
+    const rows = types.map(k => {
+      const data = bd[k];
+      if (data.total === 0) {
+        return `<div class="capacity-bar-group"><div class="capacity-bar-header"><b>${k}</b><span>0 ${t('channelsLabel')}</span></div><div class="capacity-track"><div class="cap-seg" style="width:0%"></div></div></div>`;
+      }
+      const usedPct = ((data.used / data.total) * 100).toFixed(1);
+      const resPct = ((data.reserve / data.total) * 100).toFixed(1);
+      const namedPct = ((data.named / data.total) * 100).toFixed(1);
+      const unkPct = Math.max(0, 100 - parseFloat(usedPct) - parseFloat(resPct) - parseFloat(namedPct)).toFixed(1);
+
+      return `<div class="capacity-bar-group">
+        <div class="capacity-bar-header">
+          <b>${k}</b>
+          <span>${data.total} ${t('channelsLabel')} · <span class="used-t">${t('capacityUsed')}: ${data.used} (${usedPct}%)</span> · <span class="free-t">${t('optReserve')}: ${data.reserve} (${resPct}%)</span></span>
+        </div>
+        <div class="capacity-track" title="${k}: ${data.used} ${t('capacityUsed')}, ${data.reserve} ${t('optReserve')}, ${data.named} ${t('optNamed')}, ${data.unknown} ${t('optUnverified')}">
+          <div class="cap-seg used" style="width:${usedPct}%"></div>
+          <div class="cap-seg reserve" style="width:${resPct}%"></div>
+          <div class="cap-seg named" style="width:${namedPct}%"></div>
+          <div class="cap-seg unknown" style="width:${unkPct}%"></div>
+        </div>
+      </div>`;
+    }).join('');
+
+    return `<section class="capacity-card">
+      <h3>${title}</h3>
+      <p class="capacity-sub">${sub}</p>
+      <div class="capacity-grid">${rows}</div>
+      <div class="cap-legend">
+        <span><i class="dot used"></i>${t('capacityUsed')}</span>
+        <span><i class="dot reserve"></i>${t('optReserve')}</span>
+        <span><i class="dot named"></i>${t('optNamed')} / DEV</span>
+        <span><i class="dot unknown"></i>${t('optUnverified')}</span>
+      </div>
+    </section>`;
+  }
+
   function channelKey(n, c) {
     const ctx = Analyzer.contextFor(n, state);
     return [ctx.project, ctx.station, ctx.controller, ctx.device, n.slot ?? '', n.subslot ?? '', c.address].join('|');
@@ -279,10 +373,23 @@
     $('#detailTitle').textContent = n.name || t('detailTitle');
     let rows = '';
     for (const c of n.channels || []) {
-      rows += `<tr><td class="select-cell"><input type="checkbox" aria-label="Select ${esc(c.address)}" ${state.selectedChannels.has(channelKey(n, c)) ? 'checked' : ''} onchange="__PCS7IO.toggleChannel('${n.id}',${c.index},this.checked)"></td><td><span class="status ${c.status}">${getStatusLabel(c.status)}</span></td><td><b>${esc(c.address)}</b></td><td>${esc(c.hwSymbol || '—')}<small>${esc(c.hwComment)}</small></td><td>${c.refs.length ? c.refs.map(r => `<div><b>${esc(r.symbol || '—')}</b><small>${esc(r.chart)} · ${esc(r.element)}</small></div>`).join('') : '—'}</td><td>${esc(c.confidence)}</td><td><span class="physical ${esc(c.physical || 'unchecked')}">${esc(getPhysicalLabel(c.physical || 'unchecked'))}</span>${c.reservation ? `<small>${esc(c.reservation)}</small>` : ''}${c.note ? `<small>${esc(c.note)}</small>` : ''}</td><td><button class="mini" onclick="__PCS7IO.editChannel('${n.id}',${c.index})">${t('btnEdit')}</button></td></tr>`;
+      rows += `<tr><td class="select-cell"><input type="checkbox" aria-label="Select ${esc(c.address)}" ${state.selectedChannels.has(channelKey(n, c)) ? 'checked' : ''} onchange="__PCS7IO.toggleChannel('${n.id}',${c.index},this.checked)"></td><td><span class="status ${c.status}">${getStatusLabel(c.status)}</span></td><td><b>${esc(c.address)}</b> <button type="button" class="copy-cell-btn" data-copy="${esc(c.address)}" title="${t('copyAddress')}">📋</button></td><td>${esc(c.hwSymbol || '—')}${c.hwSymbol ? ` <button type="button" class="copy-cell-btn" data-copy="${esc(c.hwSymbol)}" title="${t('copySymbol')}">📋</button>` : ''}<small>${esc(c.hwComment)}</small></td><td>${c.refs.length ? c.refs.map(r => `<div><b>${esc(r.symbol || '—')}</b><small>${esc(r.chart)} · ${esc(r.element)}</small></div>`).join('') : '—'}</td><td>${esc(c.confidence)}</td><td><span class="physical ${esc(c.physical || 'unchecked')}">${esc(getPhysicalLabel(c.physical || 'unchecked'))}</span>${c.reservation ? `<small>${esc(c.reservation)}</small>` : ''}${c.note ? `<small>${esc(c.note)}</small>` : ''}</td><td><button class="mini" onclick="__PCS7IO.editChannel('${n.id}',${c.index})">${t('btnEdit')}</button></td></tr>`;
     }
     const d = $('#detail');
-    d.innerHTML = `<div class="cards"><div><span>${t('channelsHeading')}</span><b>${s.all}</b></div><div><span>${t('optReserve')}</span><b class="free-t">${s.free}</b></div><div><span>${t('optUsed')}</span><b class="used-t">${s.used + s.multiple}</b></div><div><span>${t('metricCheck')}</span><b class="warn-t">${s.named + s.unknown}</b></div></div><dl><dt>${t('propObject')}</dt><dd>${esc(n.kind)}</dd><dt>${t('propBus')}</dt><dd>${esc(n.bus || '—')}</dd><dt>${t('propDevAddress')}</dt><dd>${n.address ?? '—'}</dd><dt>${t('propSlotSubslot')}</dt><dd>${n.slot ?? '—'} / ${n.subslot ?? '—'}</dd><dt>${t('propMlfb')}</dt><dd>${esc(n.mlfb || '—')}</dd><dt>${t('propFamilyType')}</dt><dd>${esc(n.family || '—')} / ${esc(n.devType || n.ioType || '—')}</dd><dt>${t('propRecHw')}</dt><dd>${recognitionBadge(n)} <span class="recognition-detail">${esc(Analyzer.recognitionState(n).title)}</span></dd><dt>${t('propObjConfidence')}</dt><dd><span class="confidence ${n.confidence}">${esc(n.confidence)}</span> ${esc(n.basis || '')}</dd><dt>${t('propComment')}</dt><dd>${esc((n.comments || []).filter(Boolean).join(' | ') || '—')}</dd><dt>${t('reportSource')}</dt><dd>${esc(n.file)}, line ${n.lineStart}</dd></dl>${rows ? `<div class="channel-heading"><h3>${t('channelsHeading')}</h3><div class="channel-actions"><button onclick="__PCS7IO.selectScope('all')">${t('btnAll')}</button><button onclick="__PCS7IO.selectScope('reserves')">${t('btnReserves')}</button><button onclick="__PCS7IO.selectScope('physical-free')">${t('btnPhysFree')}</button><button onclick="__PCS7IO.selectScope('invert')">${t('btnInvert')}</button><button onclick="__PCS7IO.selectScope('none')">${t('btnCancel')}</button></div></div><div class="tablewrap"><table><thead><tr><th class="select-cell">${t('thCheck')}</th><th>${t('thStatus')}</th><th>${t('thAddress')}</th><th>${t('thHwSymbol')}</th><th>${t('thXref')}</th><th>${t('thConfidence')}</th><th>${t('thPhysical')}</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>` : ''}<details><summary>${t('parserDiagBlock')}</summary>${n.warnings?.map(w => `<p class="warning">${esc(w)}</p>`).join('') || ''}<pre>${esc(n.raw || n.header || '')}</pre></details>`;
+    const capHtml = capacityBarsHtml(n);
+    d.innerHTML = `<div class="cards"><div><span>${t('channelsHeading')}</span><b>${s.all}</b></div><div><span>${t('optReserve')}</span><b class="free-t">${s.free}</b></div><div><span>${t('optUsed')}</span><b class="used-t">${s.used + s.multiple}</b></div><div><span>${t('metricCheck')}</span><b class="warn-t">${s.named + s.unknown}</b></div></div>${capHtml}<dl><dt>${t('propObject')}</dt><dd>${esc(n.kind)}</dd><dt>${t('propBus')}</dt><dd>${esc(n.bus || '—')}</dd><dt>${t('propDevAddress')}</dt><dd>${n.address ?? '—'}</dd><dt>${t('propSlotSubslot')}</dt><dd>${n.slot ?? '—'} / ${n.subslot ?? '—'}</dd><dt>${t('propMlfb')}</dt><dd>${esc(n.mlfb || '—')}</dd><dt>${t('propFamilyType')}</dt><dd>${esc(n.family || '—')} / ${esc(n.devType || n.ioType || '—')}</dd><dt>${t('propRecHw')}</dt><dd>${recognitionBadge(n)} <span class="recognition-detail">${esc(Analyzer.recognitionState(n).title)}</span></dd><dt>${t('propObjConfidence')}</dt><dd><span class="confidence ${n.confidence}">${esc(n.confidence)}</span> ${esc(n.basis || '')}</dd><dt>${t('propComment')}</dt><dd>${esc((n.comments || []).filter(Boolean).join(' | ') || '—')}</dd><dt>${t('reportSource')}</dt><dd>${esc(n.file)}, line ${n.lineStart}</dd></dl>${rows ? `<div class="channel-heading"><h3>${t('channelsHeading')}</h3><div class="channel-filter-wrap"><input id="channelFilter" class="channel-filter-input" type="search" placeholder="${t('filterChannelsPlaceholder')}" autocomplete="off"></div><div class="channel-actions"><button onclick="__PCS7IO.selectScope('all')">${t('btnAll')}</button><button onclick="__PCS7IO.selectScope('reserves')">${t('btnReserves')}</button><button onclick="__PCS7IO.selectScope('physical-free')">${t('btnPhysFree')}</button><button onclick="__PCS7IO.selectScope('invert')">${t('btnInvert')}</button><button onclick="__PCS7IO.selectScope('none')">${t('btnCancel')}</button></div></div><div class="tablewrap"><table class="channel-table"><thead><tr><th class="select-cell">${t('thCheck')}</th><th>${t('thStatus')}</th><th>${t('thAddress')}</th><th>${t('thHwSymbol')}</th><th>${t('thXref')}</th><th>${t('thConfidence')}</th><th>${t('thPhysical')}</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>` : ''}<details><summary>${t('parserDiagBlock')}</summary>${n.warnings?.map(w => `<p class="warning">${esc(w)}</p>`).join('') || ''}<pre>${esc(n.raw || n.header || '')}</pre></details>`;
+
+    const cf = $('#channelFilter');
+    if (cf) {
+      cf.oninput = (e) => {
+        const q = e.target.value.trim().toLowerCase();
+        const trs = d.querySelectorAll('.channel-table tbody tr');
+        trs.forEach(tr => {
+          if (!q) tr.style.display = '';
+          else tr.style.display = tr.textContent.toLowerCase().includes(q) ? '' : 'none';
+        });
+      };
+    }
   }
 
   function renderBindings() {
@@ -333,8 +440,9 @@
 
   function dashboard() {
     const tStats = Analyzer.stats({ children: state.projects, channels: [] }), unknown = [...new Set(Analyzer.nodes(state).filter(n => n.mlfb && (n.inAddrs.length || n.outAddrs.length) && !Cat.catalog[n.mlfb] && !Cat.catalog[Cat.normMlfb(n.mlfb)]).map(n => n.mlfb))], projects = state.projects.length, conflicts = Analyzer.addressConflicts(state).length, recognition = Analyzer.recognitionSummary({ children: state.projects, kind: 'workspace' });
+    const capHtml = capacityBarsHtml({ children: state.projects, channels: [] });
     $('#detailTitle').textContent = t('overview');
-    $('#detail').innerHTML = `<div class="hero"><div><span class="eyebrow">${t('heroEyebrow')}</span><h2>${t('heroHeading')}</h2><p>${t('heroSub', projects, Analyzer.refFiles(state).length)}</p></div><button id="runTestsHero" class="primary-action">${t('runDataHealthHero')}</button></div><div class="dashboard-grid"><article class="metric"><span>${t('metricProcessChannels')}</span><strong>${tStats.all}</strong><small>${t('metricProcessSub')}</small></article><article class="metric green"><span>${t('metricReserves')}</span><strong>${tStats.free}</strong><small>${t('metricReservesSub')}</small></article><article class="metric orange"><span>${t('metricUsed')}</span><strong>${tStats.used + tStats.multiple}</strong><small>${t('metricUsedSub')}</small></article><article class="metric red"><span>${t('metricCheck')}</span><strong>${tStats.named + tStats.unknown}</strong><small>${t('metricCheckSub')}</small></article></div><div class="dashboard-columns"><section class="surface"><h3>${t('projectHealthTitle')}</h3><div class="health-row"><span>${t('hwRecCounts')}</span><b><span class="good-text">${recognition.verified}</span> / <span class="warn-text">${recognition.probable}</span> / <span class="bad-text">${recognition.unknown}</span></b></div><div class="health-row"><span>${t('fieldDevicesCount')}</span><b><span class="good-text">${recognition.device}</span></b></div><div class="health-row"><span>${t('unknownMlfb')}</span><b class="${unknown.length ? 'bad-text' : 'good-text'}">${unknown.length}</b></div><div class="health-row"><span>${t('hwConflictsCount')}</span><b class="${conflicts ? 'bad-text' : 'good-text'}">${conflicts}</b></div><div class="health-row"><span>${t('parserWarnings')}</span><b class="${state.parseWarnings.length ? 'warn-text' : 'good-text'}">${state.parseWarnings.length}</b></div><div class="health-row"><span>${t('unassigned')} CSV</span><b>${Analyzer.refFiles(state).filter(f => !state.xrefBindings[f]).length}</b></div></section><section class="surface"><h3>${t('legendTitle')}</h3><div class="legend-grid"><span><i class="dot reserve"></i>${t('optReserve')}</span><span><i class="dot used"></i>${t('optUsed')}</span><span><i class="dot named"></i>${t('optNamed')} / DEV</span><span><i class="dot unknown"></i>${t('optUnverified')}</span></div><p class="muted">${t('legendNotice')}</p></section></div>`;
+    $('#detail').innerHTML = `<div class="hero"><div><span class="eyebrow">${t('heroEyebrow')}</span><h2>${t('heroHeading')}</h2><p>${t('heroSub', projects, Analyzer.refFiles(state).length)}</p></div><button id="runTestsHero" class="primary-action">${t('runDataHealthHero')}</button></div><div class="dashboard-grid"><article class="metric"><span>${t('metricProcessChannels')}</span><strong>${tStats.all}</strong><small>${t('metricProcessSub')}</small></article><article class="metric green"><span>${t('metricReserves')}</span><strong>${tStats.free}</strong><small>${t('metricReservesSub')}</small></article><article class="metric orange"><span>${t('metricUsed')}</span><strong>${tStats.used + tStats.multiple}</strong><small>${t('metricUsedSub')}</small></article><article class="metric red"><span>${t('metricCheck')}</span><strong>${tStats.named + tStats.unknown}</strong><small>${t('metricCheckSub')}</small></article></div>${capHtml}<div class="dashboard-columns"><section class="surface"><h3>${t('projectHealthTitle')}</h3><div class="health-row"><span>${t('hwRecCounts')}</span><b><span class="good-text">${recognition.verified}</span> / <span class="warn-text">${recognition.probable}</span> / <span class="bad-text">${recognition.unknown}</span></b></div><div class="health-row"><span>${t('fieldDevicesCount')}</span><b><span class="good-text">${recognition.device}</span></b></div><div class="health-row"><span>${t('unknownMlfb')}</span><b class="${unknown.length ? 'bad-text' : 'good-text'}">${unknown.length}</b></div><div class="health-row"><span>${t('hwConflictsCount')}</span><b class="${conflicts ? 'bad-text' : 'good-text'}">${conflicts}</b></div><div class="health-row"><span>${t('parserWarnings')}</span><b class="${state.parseWarnings.length ? 'warn-text' : 'good-text'}">${state.parseWarnings.length}</b></div><div class="health-row"><span>${t('unassigned')} CSV</span><b>${Analyzer.refFiles(state).filter(f => !state.xrefBindings[f]).length}</b></div></section><section class="surface"><h3>${t('legendTitle')}</h3><div class="legend-grid"><span><i class="dot reserve"></i>${t('optReserve')}</span><span><i class="dot used"></i>${t('optUsed')}</span><span><i class="dot named"></i>${t('optNamed')} / DEV</span><span><i class="dot unknown"></i>${t('optUnverified')}</span></div><p class="muted">${t('legendNotice')}</p></section></div>`;
     $('#runTestsHero').onclick = runSelfTests;
   }
 
@@ -404,8 +512,10 @@
       result.push({ name, items: eligible, counts, ok: !missing.length, missing });
     }
     result.sort((a, b) => Number(b.ok) - Number(a.ok) || b.items.length - a.items.length);
+    state.reserveCandidates = result.map(g => (g.ok ? Analyzer.selectCandidate(g.items, need, allNodes) : []));
+
     $('#detailTitle').textContent = t('reserveSearchTitle');
-    $('#detail').innerHTML = `<div class="notice">${t('reserveResultNotice')}</div>${result.map(g => `<section class="reserve-result ${g.ok ? 'ok' : ''}"><h3>${esc(g.name || 'RIO')} ${g.ok ? `<span class="result-ok">${t('meetsReq')}</span>` : `<span class="result-no">${t('doesNotMeetReq')}</span>`}</h3><p>DI ${g.counts.DI}/${need.DI} · DO ${g.counts.DO}/${need.DO} · AI ${g.counts.AI}/${need.AI} · AO ${g.counts.AO}/${need.AO}</p>${g.ok ? `<div class="tablewrap"><table><thead><tr><th>${t('ioTypeLabel')}</th><th>${t('thAddress')}</th><th>${t('propObject')}</th><th>${t('propSlotSubslot')}</th><th>${t('propMlfb')}</th></tr></thead><tbody>${Analyzer.selectCandidate(g.items, need, allNodes).map(r => `<tr><td>${r.type}</td><td><b>${r.address}</b></td><td>${esc(r.module)}</td><td>${r.slot ?? ''}</td><td>${esc(r.mlfb)}</td></tr>`).join('')}</tbody></table></div>` : `<p>${t('missingReq', g.missing.join(', '))}</p>`}</section>`).join('') || `<div class="empty">${t('noReservesFound')}</div>`}`;
+    $('#detail').innerHTML = `<div class="notice">${t('reserveResultNotice')}</div>${result.map((g, idx) => `<section class="reserve-result ${g.ok ? 'ok' : ''}"><h3>${esc(g.name || 'RIO')} ${g.ok ? `<span class="result-ok">${t('meetsReq')}</span>` : `<span class="result-no">${t('doesNotMeetReq')}</span>`}</h3><p>DI ${g.counts.DI}/${need.DI} · DO ${g.counts.DO}/${need.DO} · AI ${g.counts.AI}/${need.AI} · AO ${g.counts.AO}/${need.AO}</p>${g.ok ? `<div style="margin:6px 0 10px 0;"><button type="button" class="copy-candidates-btn" data-candidate-idx="${idx}">📋 ${t('copyCandidates')}</button></div><div class="tablewrap"><table><thead><tr><th>${t('ioTypeLabel')}</th><th>${t('thAddress')}</th><th>${t('propObject')}</th><th>${t('propSlotSubslot')}</th><th>${t('propMlfb')}</th></tr></thead><tbody>${state.reserveCandidates[idx].map(r => `<tr><td>${r.type}</td><td><b>${r.address}</b> <button type="button" class="copy-cell-btn" data-copy="${esc(r.address)}" title="${t('copyAddress')}">📋</button></td><td>${esc(r.module)}</td><td>${r.slot ?? ''}</td><td>${esc(r.mlfb)}</td></tr>`).join('')}</tbody></table></div>` : `<p>${t('missingReq', g.missing.join(', '))}</p>`}</section>`).join('') || `<div class="empty">${t('noReservesFound')}</div>`}`;
   }
 
   function compareProjects() {
@@ -637,6 +747,30 @@
 
     const eSel = $('#editSelected');
     if (eSel) eSel.textContent = t('editSelectedBtn');
+
+    const bFindSparesTxt = $('#btnFindSparesText');
+    if (bFindSparesTxt) bFindSparesTxt.textContent = t('btnFindSpares');
+
+    const tSidebarTxt = $('#toggleSidebarText');
+    if (tSidebarTxt) tSidebarTxt.textContent = t('toggleSidebar');
+
+    const sHead = $('#shortcutsHeading');
+    if (sHead) sHead.textContent = t('shortcutsTitle');
+
+    const shSearch = $('#shSearchText');
+    if (shSearch) shSearch.textContent = t('shortcutSearch');
+
+    const shSidebar = $('#shSidebarText');
+    if (shSidebar) shSidebar.textContent = t('shortcutSidebar');
+
+    const shOverview = $('#shOverviewText');
+    if (shOverview) shOverview.textContent = t('shortcutDashboard');
+
+    const shEscape = $('#shEscapeText');
+    if (shEscape) shEscape.textContent = t('shortcutEscape');
+
+    const shHelp = $('#shHelpText');
+    if (shHelp) shHelp.textContent = t('shortcutHelp');
   }
 
   function getTheme() {
@@ -685,6 +819,25 @@
     const lBtn = $('#langToggle');
     if (lBtn) lBtn.onclick = toggleLanguage;
 
+    const tSidebar = $('#toggleSidebar');
+    if (tSidebar) tSidebar.onclick = toggleSidebar;
+
+    const bFindSpares = $('#btnFindSpares');
+    if (bFindSpares) bFindSpares.onclick = findReserves;
+
+    const sBtn = $('#shortcutsBtn');
+    if (sBtn) sBtn.onclick = () => showShortcutsModal(true);
+
+    const cShortcuts = $('#closeShortcutsBtn');
+    if (cShortcuts) cShortcuts.onclick = () => showShortcutsModal(false);
+
+    const sModal = $('#shortcutsModal');
+    if (sModal) {
+      sModal.onclick = e => {
+        if (e.target.id === 'shortcutsModal') showShortcutsModal(false);
+      };
+    }
+
     $('#files').onchange = e => ingest(e.target.files);
     $('#showDashboard').onclick = dashboard;
     $('#runTests').onclick = runSelfTests;
@@ -724,6 +877,80 @@
     render();
   }
 
+  if (typeof document !== 'undefined' && document.addEventListener) {
+    document.addEventListener('click', e => {
+      const copyBtn = e.target.closest('[data-copy]');
+      if (copyBtn) {
+        const text = copyBtn.getAttribute('data-copy');
+        copyToClipboard(text, t('copiedToClipboard'));
+        return;
+      }
+      const candBtn = e.target.closest('.copy-candidates-btn');
+      if (candBtn) {
+        const idx = +candBtn.getAttribute('data-candidate-idx');
+        const cands = state.reserveCandidates?.[idx];
+        if (cands && cands.length) {
+          const header = `Address\tType\tModule\tSlot\tMLFB`;
+          const lines = cands.map(r => `${r.address}\t${r.type}\t${r.module}\t${r.slot ?? ''}\t${r.mlfb || ''}`);
+          const text = [header, ...lines].join('\n');
+          copyToClipboard(text, t('candidatesCopied'));
+        }
+      }
+    });
+
+    document.addEventListener('keydown', e => {
+      const active = document.activeElement;
+      const inInput = active && (['INPUT', 'TEXTAREA', 'SELECT'].includes(active.tagName) || active.isContentEditable);
+
+      if (e.key === 'Escape') {
+        const modal = $('#shortcutsModal');
+        if (modal && !modal.hidden) {
+          showShortcutsModal(false);
+          return;
+        }
+        const right = $('.right');
+        if (right && right.classList.contains('drawer-open')) {
+          right.classList.remove('drawer-open');
+          return;
+        }
+        if (inInput) {
+          active.blur();
+          return;
+        }
+      }
+
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'b' || e.key === 'B')) {
+        e.preventDefault();
+        toggleSidebar();
+        return;
+      }
+
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'f' || e.key === 'F')) {
+        e.preventDefault();
+        const s = $('#search');
+        if (s) { s.focus(); s.select(); }
+        return;
+      }
+
+      if (e.altKey && (e.key.toLowerCase() === 'd' || e.key.toLowerCase() === 'o')) {
+        e.preventDefault();
+        dashboard();
+        return;
+      }
+
+      if (!inInput) {
+        if (e.key === '/') {
+          e.preventDefault();
+          const s = $('#search');
+          if (s) { s.focus(); s.select(); }
+        } else if (e.key === '?') {
+          e.preventDefault();
+          showShortcutsModal(true);
+        }
+      }
+    });
+  }
+
   // Export full public API for browser console inspection & automated test suites
   globalThis.__PCS7IO = {
     state,
@@ -754,6 +981,9 @@
     toggleTheme,
     applyTheme,
     getTheme,
+    toggleSidebar,
+    showShortcutsModal,
+    copyToClipboard,
     ingest
   };
 

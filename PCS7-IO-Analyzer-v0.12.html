@@ -128,6 +128,282 @@ body{background:var(--bg);font-size:13px;overflow:hidden}.top{height:58px;paddin
 [data-theme="dark"] .confidence.verified { color: #4ade80; background: rgba(34, 197, 94, 0.18); }
 [data-theme="dark"] .confidence.probable { color: #fbbf24; background: rgba(245, 158, 11, 0.18); }
 [data-theme="dark"] .confidence.unknown { color: #f87171; background: rgba(239, 68, 68, 0.18); }
+
+/* --- UI Enhancements: Collapsible Sidebar, Capacity Bars, Copy Buttons, Modals --- */
+.layout.sidebar-collapsed {
+  grid-template-columns: minmax(620px, 46vw) 1fr 0px;
+}
+.layout.sidebar-collapsed .right {
+  display: none !important;
+}
+
+@media (max-width: 1600px) {
+  .right.drawer-open {
+    display: block !important;
+    position: fixed;
+    right: 0;
+    top: 96px;
+    bottom: 30px;
+    width: 320px;
+    z-index: 85;
+    background: var(--panel);
+    border-left: 2px solid var(--brand);
+    box-shadow: -6px 0 25px rgba(0, 0, 0, 0.25);
+    overflow-y: auto;
+    animation: slideInRight .18s ease-out;
+  }
+}
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+/* Capacity Bars */
+.capacity-card {
+  margin: 14px 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+.capacity-card h3 {
+  margin: 0 0 4px;
+  font-size: 15px;
+}
+.capacity-card p {
+  margin: 0 0 14px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.capacity-bar-group {
+  margin-bottom: 12px;
+}
+.capacity-bar-group:last-child {
+  margin-bottom: 0;
+}
+.capacity-bar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 12px;
+  margin-bottom: 5px;
+}
+.cap-type {
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.cap-stats {
+  font-size: 11px;
+  color: var(--muted);
+}
+.capacity-track {
+  height: 12px;
+  border-radius: 6px;
+  background: #e2e8f0;
+  display: flex;
+  overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+.cap-seg {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+.cap-seg.used { background: #d97706; }
+.cap-seg.reserve { background: #16a34a; }
+.cap-seg.named { background: #7c3aed; }
+.cap-seg.unknown { background: #dc2626; }
+.cap-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  font-size: 11px;
+  color: var(--muted);
+}
+.cap-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.cap-legend i {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+/* Copy Buttons */
+.copy-cell-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1px 4px;
+  margin-left: 4px;
+  font-size: 10px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  opacity: 0.45;
+  transition: opacity 0.15s, background 0.15s;
+}
+tr:hover .copy-cell-btn {
+  opacity: 0.9;
+}
+.copy-cell-btn:hover {
+  opacity: 1;
+  background: var(--brandSoft);
+  border-color: var(--brand);
+}
+
+/* Channel Filter Input */
+.channel-filter-wrap {
+  position: relative;
+  flex: 0 1 240px;
+}
+.channel-filter-input {
+  width: 100%;
+  height: 28px;
+  padding: 4px 8px;
+  font-size: 11px;
+  border: 1px solid #c6d0da;
+  border-radius: 5px;
+  background: #f8fafc;
+}
+.channel-filter-input:focus {
+  outline: none;
+  border-color: var(--brand);
+  background: #fff;
+}
+
+/* Candidate Copy Button */
+.copy-candidates-btn {
+  margin-top: 8px;
+  padding: 5px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 5px;
+  background: var(--brandSoft);
+  border: 1px solid var(--brand);
+  color: var(--brand);
+  cursor: pointer;
+}
+.copy-candidates-btn:hover {
+  background: var(--brand);
+  color: #fff;
+}
+
+/* Modal Overlay & Card */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(3px);
+  display: grid;
+  place-items: center;
+}
+.modal-overlay[hidden] {
+  display: none !important;
+}
+.modal-card {
+  width: min(480px, 92vw);
+  background: var(--panel);
+  border-radius: 12px;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--line);
+  overflow: hidden;
+  animation: modalScale .15s ease-out;
+}
+@keyframes modalScale {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel2);
+}
+.modal-header h3 {
+  margin: 0;
+  font-size: 15px;
+}
+.modal-close-btn {
+  background: transparent;
+  border: 0;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0 4px;
+}
+.modal-close-btn:hover {
+  color: var(--text);
+}
+.modal-body {
+  padding: 16px 20px 22px;
+}
+.shortcut-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+}
+.shortcut-row:last-child {
+  border-bottom: 0;
+}
+.shortcut-row .keys {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Dark Mode Overrides for New UI Elements */
+[data-theme="dark"] .capacity-card { background: #141d2c; border-color: #25364d; }
+[data-theme="dark"] .capacity-track { background: #1e293b; }
+[data-theme="dark"] .cap-seg.used { background: #f59e0b; }
+[data-theme="dark"] .cap-seg.reserve { background: #22c55e; }
+[data-theme="dark"] .cap-seg.named { background: #a855f7; }
+[data-theme="dark"] .cap-seg.unknown { background: #ef4444; }
+[data-theme="dark"] .cap-legend { border-top-color: #25364d; }
+[data-theme="dark"] .channel-filter-input { background: #0b1320; border-color: #2e415a; color: #f8fafc; }
+[data-theme="dark"] .channel-filter-input:focus { border-color: #38bdf8; }
+[data-theme="dark"] .copy-cell-btn { color: #94a3b8; }
+[data-theme="dark"] .copy-cell-btn:hover { background: rgba(56, 189, 248, 0.18); border-color: #38bdf8; color: #fff; }
+[data-theme="dark"] .modal-card { background: #141d2c; border-color: #25364d; }
+[data-theme="dark"] .modal-header { background: #0f1826; border-bottom-color: #25364d; }
+[data-theme="dark"] .shortcut-row { border-bottom-color: #223249; }
+[data-theme="dark"] .modal-close-btn:hover { color: #fff; }
+
+/* Enhanced Print Styles */
+@media print {
+  body { overflow: visible !important; background: #fff !important; color: #000 !important; font-size: 11pt; }
+  .top, .toolbar, .left, .right, .statusbar, .selection-bar, .channel-actions, .channel-filter-wrap, #themeToggle, #langToggle, #shortcutsBtn {
+    display: none !important;
+  }
+  .layout { display: block !important; height: auto !important; background: transparent !important; }
+  .pane { overflow: visible !important; background: transparent !important; }
+  .detail { padding: 0 !important; }
+  .tablewrap { max-height: none !important; overflow: visible !important; border: 1px solid #999 !important; box-shadow: none !important; }
+  table { width: 100% !important; border-collapse: collapse !important; font-size: 9pt !important; }
+  th, td { border: 1px solid #bbb !important; padding: 4px 6px !important; }
+  tr { page-break-inside: avoid !important; }
+  .cards { grid-template-columns: repeat(4, 1fr) !important; margin-bottom: 15px !important; }
+  .cards > div { border: 1px solid #999 !important; box-shadow: none !important; }
+  .capacity-card { border: 1px solid #999 !important; box-shadow: none !important; page-break-inside: avoid; }
+  .capacity-track { border: 1px solid #999 !important; }
+  button { display: none !important; }
+}
 </style>
 </head>
 <body>
@@ -140,6 +416,7 @@ body{background:var(--bg);font-size:13px;overflow:hidden}.top{height:58px;paddin
       </div>
     </div>
     <div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
+      <button id="shortcutsBtn" class="nav-action" style="background:rgba(255,255,255,0.15);color:#fff;border-color:rgba(255,255,255,0.3);font-weight:600;padding:4px 9px;border-radius:12px;font-size:12px;cursor:pointer;" title="Keyboard shortcuts (?) / Klávesové zkratky">⌨️ ?</button>
       <button id="themeToggle" class="nav-action" style="background:rgba(255,255,255,0.15);color:#fff;border-color:rgba(255,255,255,0.3);font-weight:600;padding:4px 9px;border-radius:12px;font-size:12px;cursor:pointer;" title="Toggle dark/light mode / Přepnout tmavý/světlý režim">🌙</button>
       <button id="langToggle" class="nav-action" style="background:rgba(255,255,255,0.15);color:#fff;border-color:rgba(255,255,255,0.3);font-weight:600;padding:4px 9px;border-radius:12px;font-size:11px;" title="Switch language / Přepnout jazyk">🌐 EN</button>
       <span class="version">v0.12</span>
@@ -153,6 +430,7 @@ body{background:var(--bg);font-size:13px;overflow:hidden}.top{height:58px;paddin
         <input id="files" type="file" accept=".cfg,.txt,.csv,.json" multiple>
       </label>
       <button id="showDashboard" class="nav-action">Overview</button>
+      <button id="btnFindSpares" class="nav-action" title="Find Spare I/O Capacity">🎯 <span id="btnFindSparesText">Find Spares</span></button>
       <button id="runTests" class="nav-action">Data Health</button>
     </div>
     <div class="search-wrap">
@@ -170,6 +448,7 @@ body{background:var(--bg);font-size:13px;overflow:hidden}.top{height:58px;paddin
       <button id="exportCatalog">Catalogue</button>
       <button id="save">Save Project</button>
     </div>
+    <button id="toggleSidebar" class="nav-action" style="margin-left:auto;" title="Toggle filters panel (Ctrl+B)">⚙️ <span id="toggleSidebarText">Filters</span></button>
   </div>
 
   <main id="drop" class="layout">
@@ -302,6 +581,23 @@ body{background:var(--bg);font-size:13px;overflow:hidden}.top{height:58px;paddin
   </div>
 
   <div id="toasts" class="toasts"></div>
+
+  <!-- Keyboard Shortcuts Modal -->
+  <div id="shortcutsModal" class="modal-overlay" hidden>
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="shortcutsHeading">⌨️ Keyboard Shortcuts</h3>
+        <button type="button" class="modal-close-btn" id="closeShortcutsBtn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="shortcut-row"><div class="keys"><kbd>/</kbd> or <kbd>Ctrl</kbd>+<kbd>F</kbd></div><span id="shSearchText">Focus search</span></div>
+        <div class="shortcut-row"><div class="keys"><kbd>Ctrl</kbd>+<kbd>B</kbd></div><span id="shSidebarText">Toggle filters sidebar</span></div>
+        <div class="shortcut-row"><div class="keys"><kbd>Alt</kbd>+<kbd>D</kbd> or <kbd>Alt</kbd>+<kbd>O</kbd></div><span id="shOverviewText">Open overview dashboard</span></div>
+        <div class="shortcut-row"><div class="keys"><kbd>Esc</kbd></div><span id="shEscapeText">Clear selection / filter / close dialog</span></div>
+        <div class="shortcut-row"><div class="keys"><kbd>?</kbd></div><span id="shHelpText">Show keyboard shortcuts</span></div>
+      </div>
+    </div>
+  </div>
 
   <script>
 /**
@@ -526,7 +822,29 @@ body{background:var(--bg);font-size:13px;overflow:hidden}.top{height:58px;paddin
       testXrefBindings: 'Cross-References bindings',
       testHwRecognition: 'HW module recognition',
       testModelConfidence: 'Channel model confidence',
-      testRioConflicts: 'RIO context address conflicts'
+      testRioConflicts: 'RIO context address conflicts',
+      // UI enhancements
+      toggleSidebar: 'Filters',
+      capacityHeading: 'I/O Capacity & Utilization',
+      capacitySub: 'Signal distribution across digital and analog I/O',
+      filterChannelsPlaceholder: '🔍 Filter channels in this view...',
+      copyAddress: 'Copy address',
+      copySymbol: 'Copy symbol',
+      copiedToClipboard: 'Copied: {0}',
+      btnFindSpares: 'Find Spares',
+      copyCandidates: 'Copy Candidates',
+      candidatesCopied: '{0} spare channels copied to clipboard',
+      shortcutsTitle: 'Keyboard Shortcuts',
+      shortcutSearch: 'Focus search',
+      shortcutDashboard: 'Overview dashboard',
+      shortcutSidebar: 'Toggle filters sidebar',
+      shortcutEscape: 'Clear / Close dialog',
+      shortcutHelp: 'Keyboard shortcuts',
+      close: 'Close',
+      capacityUsed: 'used',
+      capacityReserve: 'reserve',
+      capacityNamed: 'named',
+      capacityUnknown: 'unverified'
     },
     cs: {
       appName: 'PCS 7 I/O Analyzer',
@@ -742,7 +1060,29 @@ body{background:var(--bg);font-size:13px;overflow:hidden}.top{height:58px;paddin
       testXrefBindings: 'Přiřazení Cross-References',
       testHwRecognition: 'Rozpoznání HW modulů',
       testModelConfidence: 'Jistota kanálového modelu',
-      testRioConflicts: 'Konflikty v kontextu RIO'
+      testRioConflicts: 'Konflikty v kontextu RIO',
+      // UI enhancements
+      toggleSidebar: 'Filtry',
+      capacityHeading: 'Kapacita a využití I/O',
+      capacitySub: 'Rozdělení obsazenosti digitálních a analogových signálů',
+      filterChannelsPlaceholder: '🔍 Rychlý filtr kanálů v této kartě...',
+      copyAddress: 'Kopírovat adresu',
+      copySymbol: 'Kopírovat symbol',
+      copiedToClipboard: 'Zkopírováno: {0}',
+      btnFindSpares: 'Najít rezervy',
+      copyCandidates: 'Kopírovat kandidáty',
+      candidatesCopied: '{0} rezervních kanálů zkopírováno',
+      shortcutsTitle: 'Klávesové zkratky',
+      shortcutSearch: 'Aktivovat vyhledávání',
+      shortcutDashboard: 'Celkový přehled',
+      shortcutSidebar: 'Přepnout panel filtrů',
+      shortcutEscape: 'Zrušit výběr / Zavřít',
+      shortcutHelp: 'Klávesové zkratky',
+      close: 'Zavřít',
+      capacityUsed: 'obsazeno',
+      capacityReserve: 'rezerva',
+      capacityNamed: 'pojmenováno',
+      capacityUnknown: 'neověřeno'
     }
   };
 
@@ -1699,6 +2039,100 @@ body{background:var(--bg);font-size:13px;overflow:hidden}.top{height:58px;paddin
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   }
 
+  function copyToClipboard(text, msg = t('copiedToClipboard')) {
+    if (!text) return;
+    if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => {
+        toast(msg, 'success');
+      }).catch(() => {
+        fallbackCopy(text, msg);
+      });
+    } else {
+      fallbackCopy(text, msg);
+    }
+  }
+
+  function fallbackCopy(text, msg) {
+    try {
+      if (typeof document === 'undefined') return;
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      document.execCommand('copy');
+      ta.remove();
+      toast(msg, 'success');
+    } catch {
+      toast(String(text), 'info');
+    }
+  }
+
+  function toggleSidebar() {
+    if (typeof document === 'undefined') return;
+    const layout = $('.layout');
+    const right = $('.right');
+    if (!layout || !right) return;
+    const isWide = typeof window !== 'undefined' ? window.innerWidth >= 1600 : true;
+    if (isWide) {
+      layout.classList.toggle('sidebar-collapsed');
+    } else {
+      right.classList.toggle('drawer-open');
+    }
+  }
+
+  function showShortcutsModal(show = true) {
+    const modal = $('#shortcutsModal');
+    if (!modal) return;
+    modal.hidden = !show;
+  }
+
+  function capacityBarsHtml(node, title = t('capacityHeading'), sub = t('capacitySub')) {
+    const bd = Analyzer.ioBreakdown(node);
+    const types = ['DI', 'DO', 'AI', 'AO'];
+    if (bd.DEV && bd.DEV.total > 0) types.push('DEV');
+    const totalAll = types.reduce((acc, k) => acc + bd[k].total, 0);
+    if (totalAll === 0) return '';
+
+    const rows = types.map(k => {
+      const data = bd[k];
+      if (data.total === 0) {
+        return `<div class="capacity-bar-group"><div class="capacity-bar-header"><b>${k}</b><span>0 ${t('channelsLabel')}</span></div><div class="capacity-track"><div class="cap-seg" style="width:0%"></div></div></div>`;
+      }
+      const usedPct = ((data.used / data.total) * 100).toFixed(1);
+      const resPct = ((data.reserve / data.total) * 100).toFixed(1);
+      const namedPct = ((data.named / data.total) * 100).toFixed(1);
+      const unkPct = Math.max(0, 100 - parseFloat(usedPct) - parseFloat(resPct) - parseFloat(namedPct)).toFixed(1);
+
+      return `<div class="capacity-bar-group">
+        <div class="capacity-bar-header">
+          <b>${k}</b>
+          <span>${data.total} ${t('channelsLabel')} · <span class="used-t">${t('capacityUsed')}: ${data.used} (${usedPct}%)</span> · <span class="free-t">${t('optReserve')}: ${data.reserve} (${resPct}%)</span></span>
+        </div>
+        <div class="capacity-track" title="${k}: ${data.used} ${t('capacityUsed')}, ${data.reserve} ${t('optReserve')}, ${data.named} ${t('optNamed')}, ${data.unknown} ${t('optUnverified')}">
+          <div class="cap-seg used" style="width:${usedPct}%"></div>
+          <div class="cap-seg reserve" style="width:${resPct}%"></div>
+          <div class="cap-seg named" style="width:${namedPct}%"></div>
+          <div class="cap-seg unknown" style="width:${unkPct}%"></div>
+        </div>
+      </div>`;
+    }).join('');
+
+    return `<section class="capacity-card">
+      <h3>${title}</h3>
+      <p class="capacity-sub">${sub}</p>
+      <div class="capacity-grid">${rows}</div>
+      <div class="cap-legend">
+        <span><i class="dot used"></i>${t('capacityUsed')}</span>
+        <span><i class="dot reserve"></i>${t('optReserve')}</span>
+        <span><i class="dot named"></i>${t('optNamed')} / DEV</span>
+        <span><i class="dot unknown"></i>${t('optUnverified')}</span>
+      </div>
+    </section>`;
+  }
+
   function channelKey(n, c) {
     const ctx = Analyzer.contextFor(n, state);
     return [ctx.project, ctx.station, ctx.controller, ctx.device, n.slot ?? '', n.subslot ?? '', c.address].join('|');
@@ -1897,10 +2331,23 @@ body{background:var(--bg);font-size:13px;overflow:hidden}.top{height:58px;paddin
     $('#detailTitle').textContent = n.name || t('detailTitle');
     let rows = '';
     for (const c of n.channels || []) {
-      rows += `<tr><td class="select-cell"><input type="checkbox" aria-label="Select ${esc(c.address)}" ${state.selectedChannels.has(channelKey(n, c)) ? 'checked' : ''} onchange="__PCS7IO.toggleChannel('${n.id}',${c.index},this.checked)"></td><td><span class="status ${c.status}">${getStatusLabel(c.status)}</span></td><td><b>${esc(c.address)}</b></td><td>${esc(c.hwSymbol || '—')}<small>${esc(c.hwComment)}</small></td><td>${c.refs.length ? c.refs.map(r => `<div><b>${esc(r.symbol || '—')}</b><small>${esc(r.chart)} · ${esc(r.element)}</small></div>`).join('') : '—'}</td><td>${esc(c.confidence)}</td><td><span class="physical ${esc(c.physical || 'unchecked')}">${esc(getPhysicalLabel(c.physical || 'unchecked'))}</span>${c.reservation ? `<small>${esc(c.reservation)}</small>` : ''}${c.note ? `<small>${esc(c.note)}</small>` : ''}</td><td><button class="mini" onclick="__PCS7IO.editChannel('${n.id}',${c.index})">${t('btnEdit')}</button></td></tr>`;
+      rows += `<tr><td class="select-cell"><input type="checkbox" aria-label="Select ${esc(c.address)}" ${state.selectedChannels.has(channelKey(n, c)) ? 'checked' : ''} onchange="__PCS7IO.toggleChannel('${n.id}',${c.index},this.checked)"></td><td><span class="status ${c.status}">${getStatusLabel(c.status)}</span></td><td><b>${esc(c.address)}</b> <button type="button" class="copy-cell-btn" data-copy="${esc(c.address)}" title="${t('copyAddress')}">📋</button></td><td>${esc(c.hwSymbol || '—')}${c.hwSymbol ? ` <button type="button" class="copy-cell-btn" data-copy="${esc(c.hwSymbol)}" title="${t('copySymbol')}">📋</button>` : ''}<small>${esc(c.hwComment)}</small></td><td>${c.refs.length ? c.refs.map(r => `<div><b>${esc(r.symbol || '—')}</b><small>${esc(r.chart)} · ${esc(r.element)}</small></div>`).join('') : '—'}</td><td>${esc(c.confidence)}</td><td><span class="physical ${esc(c.physical || 'unchecked')}">${esc(getPhysicalLabel(c.physical || 'unchecked'))}</span>${c.reservation ? `<small>${esc(c.reservation)}</small>` : ''}${c.note ? `<small>${esc(c.note)}</small>` : ''}</td><td><button class="mini" onclick="__PCS7IO.editChannel('${n.id}',${c.index})">${t('btnEdit')}</button></td></tr>`;
     }
     const d = $('#detail');
-    d.innerHTML = `<div class="cards"><div><span>${t('channelsHeading')}</span><b>${s.all}</b></div><div><span>${t('optReserve')}</span><b class="free-t">${s.free}</b></div><div><span>${t('optUsed')}</span><b class="used-t">${s.used + s.multiple}</b></div><div><span>${t('metricCheck')}</span><b class="warn-t">${s.named + s.unknown}</b></div></div><dl><dt>${t('propObject')}</dt><dd>${esc(n.kind)}</dd><dt>${t('propBus')}</dt><dd>${esc(n.bus || '—')}</dd><dt>${t('propDevAddress')}</dt><dd>${n.address ?? '—'}</dd><dt>${t('propSlotSubslot')}</dt><dd>${n.slot ?? '—'} / ${n.subslot ?? '—'}</dd><dt>${t('propMlfb')}</dt><dd>${esc(n.mlfb || '—')}</dd><dt>${t('propFamilyType')}</dt><dd>${esc(n.family || '—')} / ${esc(n.devType || n.ioType || '—')}</dd><dt>${t('propRecHw')}</dt><dd>${recognitionBadge(n)} <span class="recognition-detail">${esc(Analyzer.recognitionState(n).title)}</span></dd><dt>${t('propObjConfidence')}</dt><dd><span class="confidence ${n.confidence}">${esc(n.confidence)}</span> ${esc(n.basis || '')}</dd><dt>${t('propComment')}</dt><dd>${esc((n.comments || []).filter(Boolean).join(' | ') || '—')}</dd><dt>${t('reportSource')}</dt><dd>${esc(n.file)}, line ${n.lineStart}</dd></dl>${rows ? `<div class="channel-heading"><h3>${t('channelsHeading')}</h3><div class="channel-actions"><button onclick="__PCS7IO.selectScope('all')">${t('btnAll')}</button><button onclick="__PCS7IO.selectScope('reserves')">${t('btnReserves')}</button><button onclick="__PCS7IO.selectScope('physical-free')">${t('btnPhysFree')}</button><button onclick="__PCS7IO.selectScope('invert')">${t('btnInvert')}</button><button onclick="__PCS7IO.selectScope('none')">${t('btnCancel')}</button></div></div><div class="tablewrap"><table><thead><tr><th class="select-cell">${t('thCheck')}</th><th>${t('thStatus')}</th><th>${t('thAddress')}</th><th>${t('thHwSymbol')}</th><th>${t('thXref')}</th><th>${t('thConfidence')}</th><th>${t('thPhysical')}</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>` : ''}<details><summary>${t('parserDiagBlock')}</summary>${n.warnings?.map(w => `<p class="warning">${esc(w)}</p>`).join('') || ''}<pre>${esc(n.raw || n.header || '')}</pre></details>`;
+    const capHtml = capacityBarsHtml(n);
+    d.innerHTML = `<div class="cards"><div><span>${t('channelsHeading')}</span><b>${s.all}</b></div><div><span>${t('optReserve')}</span><b class="free-t">${s.free}</b></div><div><span>${t('optUsed')}</span><b class="used-t">${s.used + s.multiple}</b></div><div><span>${t('metricCheck')}</span><b class="warn-t">${s.named + s.unknown}</b></div></div>${capHtml}<dl><dt>${t('propObject')}</dt><dd>${esc(n.kind)}</dd><dt>${t('propBus')}</dt><dd>${esc(n.bus || '—')}</dd><dt>${t('propDevAddress')}</dt><dd>${n.address ?? '—'}</dd><dt>${t('propSlotSubslot')}</dt><dd>${n.slot ?? '—'} / ${n.subslot ?? '—'}</dd><dt>${t('propMlfb')}</dt><dd>${esc(n.mlfb || '—')}</dd><dt>${t('propFamilyType')}</dt><dd>${esc(n.family || '—')} / ${esc(n.devType || n.ioType || '—')}</dd><dt>${t('propRecHw')}</dt><dd>${recognitionBadge(n)} <span class="recognition-detail">${esc(Analyzer.recognitionState(n).title)}</span></dd><dt>${t('propObjConfidence')}</dt><dd><span class="confidence ${n.confidence}">${esc(n.confidence)}</span> ${esc(n.basis || '')}</dd><dt>${t('propComment')}</dt><dd>${esc((n.comments || []).filter(Boolean).join(' | ') || '—')}</dd><dt>${t('reportSource')}</dt><dd>${esc(n.file)}, line ${n.lineStart}</dd></dl>${rows ? `<div class="channel-heading"><h3>${t('channelsHeading')}</h3><div class="channel-filter-wrap"><input id="channelFilter" class="channel-filter-input" type="search" placeholder="${t('filterChannelsPlaceholder')}" autocomplete="off"></div><div class="channel-actions"><button onclick="__PCS7IO.selectScope('all')">${t('btnAll')}</button><button onclick="__PCS7IO.selectScope('reserves')">${t('btnReserves')}</button><button onclick="__PCS7IO.selectScope('physical-free')">${t('btnPhysFree')}</button><button onclick="__PCS7IO.selectScope('invert')">${t('btnInvert')}</button><button onclick="__PCS7IO.selectScope('none')">${t('btnCancel')}</button></div></div><div class="tablewrap"><table class="channel-table"><thead><tr><th class="select-cell">${t('thCheck')}</th><th>${t('thStatus')}</th><th>${t('thAddress')}</th><th>${t('thHwSymbol')}</th><th>${t('thXref')}</th><th>${t('thConfidence')}</th><th>${t('thPhysical')}</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>` : ''}<details><summary>${t('parserDiagBlock')}</summary>${n.warnings?.map(w => `<p class="warning">${esc(w)}</p>`).join('') || ''}<pre>${esc(n.raw || n.header || '')}</pre></details>`;
+
+    const cf = $('#channelFilter');
+    if (cf) {
+      cf.oninput = (e) => {
+        const q = e.target.value.trim().toLowerCase();
+        const trs = d.querySelectorAll('.channel-table tbody tr');
+        trs.forEach(tr => {
+          if (!q) tr.style.display = '';
+          else tr.style.display = tr.textContent.toLowerCase().includes(q) ? '' : 'none';
+        });
+      };
+    }
   }
 
   function renderBindings() {
@@ -1951,8 +2398,9 @@ body{background:var(--bg);font-size:13px;overflow:hidden}.top{height:58px;paddin
 
   function dashboard() {
     const tStats = Analyzer.stats({ children: state.projects, channels: [] }), unknown = [...new Set(Analyzer.nodes(state).filter(n => n.mlfb && (n.inAddrs.length || n.outAddrs.length) && !Cat.catalog[n.mlfb] && !Cat.catalog[Cat.normMlfb(n.mlfb)]).map(n => n.mlfb))], projects = state.projects.length, conflicts = Analyzer.addressConflicts(state).length, recognition = Analyzer.recognitionSummary({ children: state.projects, kind: 'workspace' });
+    const capHtml = capacityBarsHtml({ children: state.projects, channels: [] });
     $('#detailTitle').textContent = t('overview');
-    $('#detail').innerHTML = `<div class="hero"><div><span class="eyebrow">${t('heroEyebrow')}</span><h2>${t('heroHeading')}</h2><p>${t('heroSub', projects, Analyzer.refFiles(state).length)}</p></div><button id="runTestsHero" class="primary-action">${t('runDataHealthHero')}</button></div><div class="dashboard-grid"><article class="metric"><span>${t('metricProcessChannels')}</span><strong>${tStats.all}</strong><small>${t('metricProcessSub')}</small></article><article class="metric green"><span>${t('metricReserves')}</span><strong>${tStats.free}</strong><small>${t('metricReservesSub')}</small></article><article class="metric orange"><span>${t('metricUsed')}</span><strong>${tStats.used + tStats.multiple}</strong><small>${t('metricUsedSub')}</small></article><article class="metric red"><span>${t('metricCheck')}</span><strong>${tStats.named + tStats.unknown}</strong><small>${t('metricCheckSub')}</small></article></div><div class="dashboard-columns"><section class="surface"><h3>${t('projectHealthTitle')}</h3><div class="health-row"><span>${t('hwRecCounts')}</span><b><span class="good-text">${recognition.verified}</span> / <span class="warn-text">${recognition.probable}</span> / <span class="bad-text">${recognition.unknown}</span></b></div><div class="health-row"><span>${t('fieldDevicesCount')}</span><b><span class="good-text">${recognition.device}</span></b></div><div class="health-row"><span>${t('unknownMlfb')}</span><b class="${unknown.length ? 'bad-text' : 'good-text'}">${unknown.length}</b></div><div class="health-row"><span>${t('hwConflictsCount')}</span><b class="${conflicts ? 'bad-text' : 'good-text'}">${conflicts}</b></div><div class="health-row"><span>${t('parserWarnings')}</span><b class="${state.parseWarnings.length ? 'warn-text' : 'good-text'}">${state.parseWarnings.length}</b></div><div class="health-row"><span>${t('unassigned')} CSV</span><b>${Analyzer.refFiles(state).filter(f => !state.xrefBindings[f]).length}</b></div></section><section class="surface"><h3>${t('legendTitle')}</h3><div class="legend-grid"><span><i class="dot reserve"></i>${t('optReserve')}</span><span><i class="dot used"></i>${t('optUsed')}</span><span><i class="dot named"></i>${t('optNamed')} / DEV</span><span><i class="dot unknown"></i>${t('optUnverified')}</span></div><p class="muted">${t('legendNotice')}</p></section></div>`;
+    $('#detail').innerHTML = `<div class="hero"><div><span class="eyebrow">${t('heroEyebrow')}</span><h2>${t('heroHeading')}</h2><p>${t('heroSub', projects, Analyzer.refFiles(state).length)}</p></div><button id="runTestsHero" class="primary-action">${t('runDataHealthHero')}</button></div><div class="dashboard-grid"><article class="metric"><span>${t('metricProcessChannels')}</span><strong>${tStats.all}</strong><small>${t('metricProcessSub')}</small></article><article class="metric green"><span>${t('metricReserves')}</span><strong>${tStats.free}</strong><small>${t('metricReservesSub')}</small></article><article class="metric orange"><span>${t('metricUsed')}</span><strong>${tStats.used + tStats.multiple}</strong><small>${t('metricUsedSub')}</small></article><article class="metric red"><span>${t('metricCheck')}</span><strong>${tStats.named + tStats.unknown}</strong><small>${t('metricCheckSub')}</small></article></div>${capHtml}<div class="dashboard-columns"><section class="surface"><h3>${t('projectHealthTitle')}</h3><div class="health-row"><span>${t('hwRecCounts')}</span><b><span class="good-text">${recognition.verified}</span> / <span class="warn-text">${recognition.probable}</span> / <span class="bad-text">${recognition.unknown}</span></b></div><div class="health-row"><span>${t('fieldDevicesCount')}</span><b><span class="good-text">${recognition.device}</span></b></div><div class="health-row"><span>${t('unknownMlfb')}</span><b class="${unknown.length ? 'bad-text' : 'good-text'}">${unknown.length}</b></div><div class="health-row"><span>${t('hwConflictsCount')}</span><b class="${conflicts ? 'bad-text' : 'good-text'}">${conflicts}</b></div><div class="health-row"><span>${t('parserWarnings')}</span><b class="${state.parseWarnings.length ? 'warn-text' : 'good-text'}">${state.parseWarnings.length}</b></div><div class="health-row"><span>${t('unassigned')} CSV</span><b>${Analyzer.refFiles(state).filter(f => !state.xrefBindings[f]).length}</b></div></section><section class="surface"><h3>${t('legendTitle')}</h3><div class="legend-grid"><span><i class="dot reserve"></i>${t('optReserve')}</span><span><i class="dot used"></i>${t('optUsed')}</span><span><i class="dot named"></i>${t('optNamed')} / DEV</span><span><i class="dot unknown"></i>${t('optUnverified')}</span></div><p class="muted">${t('legendNotice')}</p></section></div>`;
     $('#runTestsHero').onclick = runSelfTests;
   }
 
@@ -2022,8 +2470,10 @@ body{background:var(--bg);font-size:13px;overflow:hidden}.top{height:58px;paddin
       result.push({ name, items: eligible, counts, ok: !missing.length, missing });
     }
     result.sort((a, b) => Number(b.ok) - Number(a.ok) || b.items.length - a.items.length);
+    state.reserveCandidates = result.map(g => (g.ok ? Analyzer.selectCandidate(g.items, need, allNodes) : []));
+
     $('#detailTitle').textContent = t('reserveSearchTitle');
-    $('#detail').innerHTML = `<div class="notice">${t('reserveResultNotice')}</div>${result.map(g => `<section class="reserve-result ${g.ok ? 'ok' : ''}"><h3>${esc(g.name || 'RIO')} ${g.ok ? `<span class="result-ok">${t('meetsReq')}</span>` : `<span class="result-no">${t('doesNotMeetReq')}</span>`}</h3><p>DI ${g.counts.DI}/${need.DI} · DO ${g.counts.DO}/${need.DO} · AI ${g.counts.AI}/${need.AI} · AO ${g.counts.AO}/${need.AO}</p>${g.ok ? `<div class="tablewrap"><table><thead><tr><th>${t('ioTypeLabel')}</th><th>${t('thAddress')}</th><th>${t('propObject')}</th><th>${t('propSlotSubslot')}</th><th>${t('propMlfb')}</th></tr></thead><tbody>${Analyzer.selectCandidate(g.items, need, allNodes).map(r => `<tr><td>${r.type}</td><td><b>${r.address}</b></td><td>${esc(r.module)}</td><td>${r.slot ?? ''}</td><td>${esc(r.mlfb)}</td></tr>`).join('')}</tbody></table></div>` : `<p>${t('missingReq', g.missing.join(', '))}</p>`}</section>`).join('') || `<div class="empty">${t('noReservesFound')}</div>`}`;
+    $('#detail').innerHTML = `<div class="notice">${t('reserveResultNotice')}</div>${result.map((g, idx) => `<section class="reserve-result ${g.ok ? 'ok' : ''}"><h3>${esc(g.name || 'RIO')} ${g.ok ? `<span class="result-ok">${t('meetsReq')}</span>` : `<span class="result-no">${t('doesNotMeetReq')}</span>`}</h3><p>DI ${g.counts.DI}/${need.DI} · DO ${g.counts.DO}/${need.DO} · AI ${g.counts.AI}/${need.AI} · AO ${g.counts.AO}/${need.AO}</p>${g.ok ? `<div style="margin:6px 0 10px 0;"><button type="button" class="copy-candidates-btn" data-candidate-idx="${idx}">📋 ${t('copyCandidates')}</button></div><div class="tablewrap"><table><thead><tr><th>${t('ioTypeLabel')}</th><th>${t('thAddress')}</th><th>${t('propObject')}</th><th>${t('propSlotSubslot')}</th><th>${t('propMlfb')}</th></tr></thead><tbody>${state.reserveCandidates[idx].map(r => `<tr><td>${r.type}</td><td><b>${r.address}</b> <button type="button" class="copy-cell-btn" data-copy="${esc(r.address)}" title="${t('copyAddress')}">📋</button></td><td>${esc(r.module)}</td><td>${r.slot ?? ''}</td><td>${esc(r.mlfb)}</td></tr>`).join('')}</tbody></table></div>` : `<p>${t('missingReq', g.missing.join(', '))}</p>`}</section>`).join('') || `<div class="empty">${t('noReservesFound')}</div>`}`;
   }
 
   function compareProjects() {
@@ -2255,6 +2705,30 @@ body{background:var(--bg);font-size:13px;overflow:hidden}.top{height:58px;paddin
 
     const eSel = $('#editSelected');
     if (eSel) eSel.textContent = t('editSelectedBtn');
+
+    const bFindSparesTxt = $('#btnFindSparesText');
+    if (bFindSparesTxt) bFindSparesTxt.textContent = t('btnFindSpares');
+
+    const tSidebarTxt = $('#toggleSidebarText');
+    if (tSidebarTxt) tSidebarTxt.textContent = t('toggleSidebar');
+
+    const sHead = $('#shortcutsHeading');
+    if (sHead) sHead.textContent = t('shortcutsTitle');
+
+    const shSearch = $('#shSearchText');
+    if (shSearch) shSearch.textContent = t('shortcutSearch');
+
+    const shSidebar = $('#shSidebarText');
+    if (shSidebar) shSidebar.textContent = t('shortcutSidebar');
+
+    const shOverview = $('#shOverviewText');
+    if (shOverview) shOverview.textContent = t('shortcutDashboard');
+
+    const shEscape = $('#shEscapeText');
+    if (shEscape) shEscape.textContent = t('shortcutEscape');
+
+    const shHelp = $('#shHelpText');
+    if (shHelp) shHelp.textContent = t('shortcutHelp');
   }
 
   function getTheme() {
@@ -2303,6 +2777,25 @@ body{background:var(--bg);font-size:13px;overflow:hidden}.top{height:58px;paddin
     const lBtn = $('#langToggle');
     if (lBtn) lBtn.onclick = toggleLanguage;
 
+    const tSidebar = $('#toggleSidebar');
+    if (tSidebar) tSidebar.onclick = toggleSidebar;
+
+    const bFindSpares = $('#btnFindSpares');
+    if (bFindSpares) bFindSpares.onclick = findReserves;
+
+    const sBtn = $('#shortcutsBtn');
+    if (sBtn) sBtn.onclick = () => showShortcutsModal(true);
+
+    const cShortcuts = $('#closeShortcutsBtn');
+    if (cShortcuts) cShortcuts.onclick = () => showShortcutsModal(false);
+
+    const sModal = $('#shortcutsModal');
+    if (sModal) {
+      sModal.onclick = e => {
+        if (e.target.id === 'shortcutsModal') showShortcutsModal(false);
+      };
+    }
+
     $('#files').onchange = e => ingest(e.target.files);
     $('#showDashboard').onclick = dashboard;
     $('#runTests').onclick = runSelfTests;
@@ -2342,6 +2835,80 @@ body{background:var(--bg);font-size:13px;overflow:hidden}.top{height:58px;paddin
     render();
   }
 
+  if (typeof document !== 'undefined' && document.addEventListener) {
+    document.addEventListener('click', e => {
+      const copyBtn = e.target.closest('[data-copy]');
+      if (copyBtn) {
+        const text = copyBtn.getAttribute('data-copy');
+        copyToClipboard(text, t('copiedToClipboard'));
+        return;
+      }
+      const candBtn = e.target.closest('.copy-candidates-btn');
+      if (candBtn) {
+        const idx = +candBtn.getAttribute('data-candidate-idx');
+        const cands = state.reserveCandidates?.[idx];
+        if (cands && cands.length) {
+          const header = `Address\tType\tModule\tSlot\tMLFB`;
+          const lines = cands.map(r => `${r.address}\t${r.type}\t${r.module}\t${r.slot ?? ''}\t${r.mlfb || ''}`);
+          const text = [header, ...lines].join('\n');
+          copyToClipboard(text, t('candidatesCopied'));
+        }
+      }
+    });
+
+    document.addEventListener('keydown', e => {
+      const active = document.activeElement;
+      const inInput = active && (['INPUT', 'TEXTAREA', 'SELECT'].includes(active.tagName) || active.isContentEditable);
+
+      if (e.key === 'Escape') {
+        const modal = $('#shortcutsModal');
+        if (modal && !modal.hidden) {
+          showShortcutsModal(false);
+          return;
+        }
+        const right = $('.right');
+        if (right && right.classList.contains('drawer-open')) {
+          right.classList.remove('drawer-open');
+          return;
+        }
+        if (inInput) {
+          active.blur();
+          return;
+        }
+      }
+
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'b' || e.key === 'B')) {
+        e.preventDefault();
+        toggleSidebar();
+        return;
+      }
+
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'f' || e.key === 'F')) {
+        e.preventDefault();
+        const s = $('#search');
+        if (s) { s.focus(); s.select(); }
+        return;
+      }
+
+      if (e.altKey && (e.key.toLowerCase() === 'd' || e.key.toLowerCase() === 'o')) {
+        e.preventDefault();
+        dashboard();
+        return;
+      }
+
+      if (!inInput) {
+        if (e.key === '/') {
+          e.preventDefault();
+          const s = $('#search');
+          if (s) { s.focus(); s.select(); }
+        } else if (e.key === '?') {
+          e.preventDefault();
+          showShortcutsModal(true);
+        }
+      }
+    });
+  }
+
   // Export full public API for browser console inspection & automated test suites
   globalThis.__PCS7IO = {
     state,
@@ -2372,6 +2939,9 @@ body{background:var(--bg);font-size:13px;overflow:hidden}.top{height:58px;paddin
     toggleTheme,
     applyTheme,
     getTheme,
+    toggleSidebar,
+    showShortcutsModal,
+    copyToClipboard,
     ingest
   };
 
