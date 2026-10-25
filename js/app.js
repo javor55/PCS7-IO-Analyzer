@@ -220,6 +220,7 @@
   }
 
   function visible(n) {
+    if (n.kind === 'submodule') return false;
     const s = Analyzer.stats(n), q = state.q;
     if (state.deviceOnly && !['project', 'station', 'controller', 'device'].includes(n.kind)) return false;
     if (state.hideNoIo && !s.all) return false;

@@ -73,8 +73,10 @@
 
     // --- ET 200SP HA / Ex ---
     '6DL1 131-6BH00-0PH1': { type: 'DI', channels: 16, family: 'ET 200SP HA', width: 'bit' },
+    '6DL1 131-6TD00-0HX1': { type: 'DI', channels: 4, family: 'ET 200SP Ex', width: 'bit' },
     '6DL1 132-6BH00-0PH1': { type: 'DO', channels: 16, family: 'ET 200SP HA', width: 'bit' },
     '6DL1 132-6TD00-0HX1': { type: 'DI', channels: 4, family: 'ET 200SP Ex', width: 'bit' },
+    '6DL1 133-6PX00-0HW0': { type: 'OTHER', family: 'ET 200SP Ex PM E', isSystem: true },
     '6DL1 134-6AF00-0PH1': { type: 'AI', channels: 8, family: 'ET 200SP HA', width: 'word' },
     '6DL1 134-6TB00-0HX1': { type: 'AI', channels: 2, family: 'ET 200SP Ex', width: 'word' },
 

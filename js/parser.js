@@ -50,7 +50,7 @@
     if (/^STATION\s/i.test(line)) o.kind = 'station';
     else if (/CONTROLLER\s+(?:IO|DP)SUBSYSTEM/i.test(line)) o.kind = 'controller';
     else if (/^(?:IO|DP)SUBSYSTEM\s+\d+.*(?:IO|DP)ADDRESS/i.test(line) && o.slot == null) o.kind = 'device';
-    else if (o.slot != null || /^RACK\s/i.test(line)) o.kind = 'module';
+    else if (o.slot != null || /^RACK\s/i.test(line)) o.kind = o.subslot != null ? 'submodule' : 'module';
     return o;
   }
 
@@ -65,7 +65,16 @@
       else if (/^(?:IO|DP)SUBSYSTEM\s/i.test(t) || /^RACK\s/i.test(t)) {
         n = baseNode(header(t), file, i + 1);
         if (n.kind === 'device') { (controller || station).children.push(n); device = n; }
-        else { (device || controller || station).children.push(n); }
+        else if (device && n.subslot != null) {
+          const parentSlotMod = device.children.find(c => c.slot === n.slot && c.subslot == null);
+          if (parentSlotMod) {
+            parentSlotMod.children.push(n);
+          } else {
+            device.children.push(n);
+          }
+        } else {
+          (device || controller || station).children.push(n);
+        }
       }
       if (n) { if (current) current.lineEnd = i; current = n; mode = ''; continue; }
       if (!current) continue;
@@ -78,6 +87,23 @@
       else if (/^SYMBOL\s/i.test(t)) { const m = t.match(/^SYMBOL\s+([IO])\s*,\s*(\d+)/i), q = quoted(t); if (m) current.symbols.push({ dir: m[1].toUpperCase(), offset: +m[2], name: q[0] || '', comment: q[1] || '' }); }
       else if (mode === 'param' && t && !/^END\b/.test(t)) current.params.push(t);
     }
+    function propagateSubslots(node) {
+      if (node.kind === 'module' && node.subslot == null && node.children.length) {
+        for (const sub of node.children) {
+          if (sub.subslot != null) {
+            if (sub.inAddrs.length) node.inAddrs.push(...sub.inAddrs);
+            if (sub.outAddrs.length) node.outAddrs.push(...sub.outAddrs);
+            if (sub.symbols.length) node.symbols.push(...sub.symbols);
+            if (sub.params.length) node.params.push(...sub.params);
+            if (!node.comments.length && sub.comments.length) node.comments.push(...sub.comments);
+            if (!node.mlfb && sub.mlfb) node.mlfb = sub.mlfb;
+          }
+        }
+      }
+      node.children.forEach(propagateSubslots);
+    }
+    propagateSubslots(root);
+
     function finish(n) {
       n.lineEnd = Math.max(n.lineEnd, n.lineStart);
       n.raw = ls.slice(n.lineStart - 1, Math.min(ls.length, n.lineStart + 130)).join('\n');
@@ -161,8 +187,9 @@
   function isProcessModule(n, x) {
     const text = (n.name + ' ' + n.mlfb + ' ' + n.header).toUpperCase();
     if (n.kind !== 'module') return false;
+    if (n.subslot != null) return false;
     if (x.isSystem || x.type === 'OTHER') return false;
-    if (n.slot === 0 || /PORT\s*\d|SERVER MODULE|-SM\b|INTERFACE|SUBMODUL|SYNC MODULE|H SYNC|SCALANCE/.test(text)) return false;
+    if (n.slot === 0 || /PORT\s*\d|SERVER MODULE|-SM\b|INTERFACE|PORT_SUBMODUL|SYNC MODULE|H SYNC|SCALANCE/.test(text)) return false;
     if (x.type === 'DEV') return true;
     if (!['DI', 'DO', 'AI', 'AO', 'DI/DO'].includes(x.type)) return false;
     const addrs = [...n.inAddrs, ...n.outAddrs].map(a => a[0]);

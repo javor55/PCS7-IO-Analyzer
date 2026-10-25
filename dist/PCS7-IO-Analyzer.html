@@ -856,8 +856,10 @@ body{background:var(--bg);font-size:13px;overflow:hidden}.top{height:58px;paddin
 
     // --- ET 200SP HA / Ex ---
     '6DL1 131-6BH00-0PH1': { type: 'DI', channels: 16, family: 'ET 200SP HA', width: 'bit' },
+    '6DL1 131-6TD00-0HX1': { type: 'DI', channels: 4, family: 'ET 200SP Ex', width: 'bit' },
     '6DL1 132-6BH00-0PH1': { type: 'DO', channels: 16, family: 'ET 200SP HA', width: 'bit' },
     '6DL1 132-6TD00-0HX1': { type: 'DI', channels: 4, family: 'ET 200SP Ex', width: 'bit' },
+    '6DL1 133-6PX00-0HW0': { type: 'OTHER', family: 'ET 200SP Ex PM E', isSystem: true },
     '6DL1 134-6AF00-0PH1': { type: 'AI', channels: 8, family: 'ET 200SP HA', width: 'word' },
     '6DL1 134-6TB00-0HX1': { type: 'AI', channels: 2, family: 'ET 200SP Ex', width: 'word' },
 
@@ -977,7 +979,7 @@ body{background:var(--bg);font-size:13px;overflow:hidden}.top{height:58px;paddin
     if (/^STATION\s/i.test(line)) o.kind = 'station';
     else if (/CONTROLLER\s+(?:IO|DP)SUBSYSTEM/i.test(line)) o.kind = 'controller';
     else if (/^(?:IO|DP)SUBSYSTEM\s+\d+.*(?:IO|DP)ADDRESS/i.test(line) && o.slot == null) o.kind = 'device';
-    else if (o.slot != null || /^RACK\s/i.test(line)) o.kind = 'module';
+    else if (o.slot != null || /^RACK\s/i.test(line)) o.kind = o.subslot != null ? 'submodule' : 'module';
     return o;
   }
 
@@ -992,7 +994,16 @@ body{background:var(--bg);font-size:13px;overflow:hidden}.top{height:58px;paddin
       else if (/^(?:IO|DP)SUBSYSTEM\s/i.test(t) || /^RACK\s/i.test(t)) {
         n = baseNode(header(t), file, i + 1);
         if (n.kind === 'device') { (controller || station).children.push(n); device = n; }
-        else { (device || controller || station).children.push(n); }
+        else if (device && n.subslot != null) {
+          const parentSlotMod = device.children.find(c => c.slot === n.slot && c.subslot == null);
+          if (parentSlotMod) {
+            parentSlotMod.children.push(n);
+          } else {
+            device.children.push(n);
+          }
+        } else {
+          (device || controller || station).children.push(n);
+        }
       }
       if (n) { if (current) current.lineEnd = i; current = n; mode = ''; continue; }
       if (!current) continue;
@@ -1005,6 +1016,23 @@ body{background:var(--bg);font-size:13px;overflow:hidden}.top{height:58px;paddin
       else if (/^SYMBOL\s/i.test(t)) { const m = t.match(/^SYMBOL\s+([IO])\s*,\s*(\d+)/i), q = quoted(t); if (m) current.symbols.push({ dir: m[1].toUpperCase(), offset: +m[2], name: q[0] || '', comment: q[1] || '' }); }
       else if (mode === 'param' && t && !/^END\b/.test(t)) current.params.push(t);
     }
+    function propagateSubslots(node) {
+      if (node.kind === 'module' && node.subslot == null && node.children.length) {
+        for (const sub of node.children) {
+          if (sub.subslot != null) {
+            if (sub.inAddrs.length) node.inAddrs.push(...sub.inAddrs);
+            if (sub.outAddrs.length) node.outAddrs.push(...sub.outAddrs);
+            if (sub.symbols.length) node.symbols.push(...sub.symbols);
+            if (sub.params.length) node.params.push(...sub.params);
+            if (!node.comments.length && sub.comments.length) node.comments.push(...sub.comments);
+            if (!node.mlfb && sub.mlfb) node.mlfb = sub.mlfb;
+          }
+        }
+      }
+      node.children.forEach(propagateSubslots);
+    }
+    propagateSubslots(root);
+
     function finish(n) {
       n.lineEnd = Math.max(n.lineEnd, n.lineStart);
       n.raw = ls.slice(n.lineStart - 1, Math.min(ls.length, n.lineStart + 130)).join('\n');
@@ -1088,8 +1116,9 @@ body{background:var(--bg);font-size:13px;overflow:hidden}.top{height:58px;paddin
   function isProcessModule(n, x) {
     const text = (n.name + ' ' + n.mlfb + ' ' + n.header).toUpperCase();
     if (n.kind !== 'module') return false;
+    if (n.subslot != null) return false;
     if (x.isSystem || x.type === 'OTHER') return false;
-    if (n.slot === 0 || /PORT\s*\d|SERVER MODULE|-SM\b|INTERFACE|SUBMODUL|SYNC MODULE|H SYNC|SCALANCE/.test(text)) return false;
+    if (n.slot === 0 || /PORT\s*\d|SERVER MODULE|-SM\b|INTERFACE|PORT_SUBMODUL|SYNC MODULE|H SYNC|SCALANCE/.test(text)) return false;
     if (x.type === 'DEV') return true;
     if (!['DI', 'DO', 'AI', 'AO', 'DI/DO'].includes(x.type)) return false;
     const addrs = [...n.inAddrs, ...n.outAddrs].map(a => a[0]);
@@ -1809,6 +1838,7 @@ body{background:var(--bg);font-size:13px;overflow:hidden}.top{height:58px;paddin
   }
 
   function visible(n) {
+    if (n.kind === 'submodule') return false;
     const s = Analyzer.stats(n), q = state.q;
     if (state.deviceOnly && !['project', 'station', 'controller', 'device'].includes(n.kind)) return false;
     if (state.hideNoIo && !s.all) return false;

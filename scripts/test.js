@@ -149,6 +149,43 @@ api.runSelfTests();
 const reserves = api.nodes().filter(n => n.channels?.some(c => c.status === 'reserve'));
 console.log(`PASS: Found ${reserves.length} modules containing reserve channels in lisovna`);
 
+console.log('\n--- 5. Testing 6ES7 131-6BF00-0CA0 module recognition & channel counts ---');
+for (const pair of cfgs) {
+  const cfgText = fs.readFileSync(path.join(rootDir, 'PCS7 export', pair.cfg), 'utf8');
+  const proj = api.parseHw(cfgText, pair.cfg);
+  const m131 = [];
+  const walk = n => {
+    if (n.mlfb && n.mlfb.includes('131-6BF00') && n.kind === 'module') m131.push(n);
+    n.children?.forEach(walk);
+  };
+  walk(proj);
+  if (m131.length) {
+    const zeros = m131.filter(m => m.channels.length === 0);
+    if (zeros.length > 0) {
+      console.error(`FAIL: ${pair.cfg} has ${zeros.length} 6ES7 131-6BF00-0CA0 modules with 0 channels!`, zeros.map(z => ({ name: z.name, slot: z.slot })));
+      allOk = false;
+    } else {
+      console.log(`PASS: [${pair.cfg}] All ${m131.length} modules of 6ES7 131-6BF00-0CA0 recognized with 8 DI channels!`);
+    }
+  }
+}
+
+// Specifically test Device 56 Slot 1 in tdg.cfg
+const tdgText = fs.readFileSync(path.join(rootDir, 'PCS7 export', 'tdg.cfg'), 'utf8');
+const tdgProj = api.parseHw(tdgText, 'tdg.cfg');
+let dev56Slot1 = null;
+const find56 = n => {
+  if (n.kind === 'module' && n.slot === 1 && n.mlfb === '6ES7 131-6BF00-0CA0' && n.header.includes('IOADDRESS 56')) dev56Slot1 = n;
+  n.children?.forEach(find56);
+};
+find56(tdgProj);
+if (!dev56Slot1 || dev56Slot1.channels.length !== 8 || dev56Slot1.channels[0].address !== 'I2500.0') {
+  console.error('FAIL: tdg.cfg IOADDRESS 56 Slot 1 not properly recognized!', dev56Slot1);
+  allOk = false;
+} else {
+  console.log('PASS: tdg.cfg IOADDRESS 56 Slot 1 verified: 8 channels (I2500.0..I2500.7), symbol:', dev56Slot1.channels[0].hwSymbol);
+}
+
 console.log('\n===========================================');
 console.log('ALL TESTS RESULT:', allOk ? 'PASSED SUCCESS (100%)' : 'FAILED');
 console.log('===========================================\n');
