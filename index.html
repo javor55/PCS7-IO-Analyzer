@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PCS 7 I/O Analyzer</title>
+  <meta name="description" content="Client-side STEP 7 / PCS 7 HW Config & Cross-References Analyzer. I/O spare capacity analysis and hardware health inspection.">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <div class="brand-mark">IO</div>
+      <div class="brand-copy">
+        <h1>PCS 7 I/O Analyzer</h1>
+        <span id="appSubtitle">HW Config · Cross-References · Reserves</span>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
+      <button id="themeToggle" class="nav-action" style="background:rgba(255,255,255,0.15);color:#fff;border-color:rgba(255,255,255,0.3);font-weight:600;padding:4px 9px;border-radius:12px;font-size:12px;cursor:pointer;" title="Toggle dark/light mode / Přepnout tmavý/světlý režim">🌙</button>
+      <button id="langToggle" class="nav-action" style="background:rgba(255,255,255,0.15);color:#fff;border-color:rgba(255,255,255,0.3);font-weight:600;padding:4px 9px;border-radius:12px;font-size:11px;" title="Switch language / Přepnout jazyk">🌐 EN</button>
+      <span class="version">v0.12</span>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <div class="toolbar-group">
+      <label id="filesLabel" class="file primary">
+        ＋ Load files
+        <input id="files" type="file" accept=".cfg,.txt,.csv,.json" multiple>
+      </label>
+      <button id="showDashboard" class="nav-action">Overview</button>
+      <button id="runTests" class="nav-action">Data Health</button>
+    </div>
+    <div class="search-wrap">
+      <input id="search" class="search" placeholder="Search RIO, slot, MLFB, address, symbol or chart…">
+    </div>
+    <div class="toolbar-group secondary">
+      <button id="expand">Expand</button>
+      <button id="collapse">Collapse</button>
+      <button id="compareProjects">Compare</button>
+      <button id="bulkEdit">Bulk Edit</button>
+    </div>
+    <div class="toolbar-group secondary">
+      <button id="exportCsv">Export CSV</button>
+      <button id="createReport">Report</button>
+      <button id="exportCatalog">Catalogue</button>
+      <button id="save">Save Project</button>
+    </div>
+  </div>
+
+  <main id="drop" class="layout">
+    <section class="pane left">
+      <h2 id="hwConfigHeader">HW Configuration</h2>
+      <div class="tree-legend">
+        <span><i class="sample-toggle">−</i> <span id="legExpanded">expanded</span></span>
+        <span><i class="sample-toggle">+</i> <span id="legCollapsed">collapsed</span></span>
+        <span class="recognition-legend">
+          <span><i class="v">✓</i> <span id="legVerified">verified</span></span>
+          <span><i class="p">~</i> <span id="legDerived">derived</span></span>
+          <span><i class="u">!</i> <span id="legUnknown">unverified</span></span>
+          <span><i class="s">S</i> <span id="legSystem">system</span></span>
+          <span><i class="z">Z</i> <span id="legDevice">device</span></span>
+        </span>
+        <span class="io-key">DI · DO · AI · AO <em>used / total</em></span>
+        <div class="tree-tools">
+          <button id="treeExpand">All +</button>
+          <button id="treeCollapse">All −</button>
+        </div>
+      </div>
+      <div class="tree-columns">
+        <span id="colHwObjText">HW Configuration Object</span>
+        <span id="colIoSummText">I/O Summary</span>
+      </div>
+      <div id="tree" class="tree"></div>
+    </section>
+
+    <section class="pane">
+      <h2 id="detailTitle">Detail</h2>
+      <div id="detail" class="detail">
+        <div class="empty-state">
+          <div>
+            <div class="empty-icon">⇧</div>
+            <h3 id="emptyTitle">Load HW Configuration</h3>
+            <p id="emptyDesc">Select original <b>CFG</b> and matching <b>CSV</b> Cross-References.<br>You can also drag & drop files into this window.</p>
+            <span class="kbd" id="emptyBadge">Local in-browser processing</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="pane right">
+      <h2 id="filtersHeader">Filters & Health</h2>
+      <div class="bindings">
+        <strong id="xrefAssignHeading">Cross-References Assignment</strong>
+        <div id="bindings"></div>
+      </div>
+      <div class="filters">
+        <label id="lblIoType">
+          I/O Type
+          <select id="typeFilter">
+            <option value="all">All</option>
+            <option>DI</option>
+            <option>DO</option>
+            <option>AI</option>
+            <option>AO</option>
+            <option value="DEV">Device (DEV)</option>
+            <option value="OTHER">Other</option>
+          </select>
+        </label>
+        <label id="lblStatus">
+          Status
+          <select id="stateFilter">
+            <option value="all">All</option>
+            <option value="reserve">HW reserves</option>
+            <option value="used">Used</option>
+            <option value="named">Named, unused</option>
+            <option value="unknown">Unverified</option>
+            <option value="allfree">Completely free modules</option>
+            <option value="partial">Partially used modules</option>
+          </select>
+        </label>
+        <label id="lblPhysical">
+          Physical Status
+          <select id="physicalFilter">
+            <option value="all">All</option>
+            <option value="unchecked">Unchecked</option>
+            <option value="free">Physically free</option>
+            <option value="wired">Cable connected</option>
+            <option value="blocked">Do not use</option>
+            <option value="reserved">Reserved for project</option>
+          </select>
+          <div class="physical-filter-note" id="physFilterNote">Filters cards and RIOs containing selected physical state.</div>
+        </label>
+        <div class="checks">
+          <label><input id="deviceOnly" type="checkbox"> <span id="lblDeviceOnly">RIO structure only</span></label>
+          <label><input id="hideNoIo" type="checkbox"> <span id="lblHideNoIo">Hide without process I/O</span></label>
+        </div>
+        <div class="actions">
+          <button id="clear">Clear filters</button>
+        </div>
+        <div class="reserve-box">
+          <b id="reserveSearchHeading">Find Reserves</b>
+          <div class="reserve-grid">
+            <label>DI<input id="needDI" type="number" min="0" value="0"></label>
+            <label>DO<input id="needDO" type="number" min="0" value="0"></label>
+            <label>AI<input id="needAI" type="number" min="0" value="0"></label>
+            <label>AO<input id="needAO" type="number" min="0" value="0"></label>
+          </div>
+          <label><input id="sameRio" type="checkbox" checked> <span id="lblSameRio">All on single RIO</span></label>
+          <label><input id="verifiedOnly" type="checkbox" checked> <span id="lblVerifiedOnly">Verified modules only</span></label>
+          <label><input id="wholeModules" type="checkbox"> <span id="lblWholeModules">Completely free modules only</span></label>
+          <button id="findReserves">Find suitable RIO</button>
+        </div>
+        <div id="compatibility" class="compat neutral"></div>
+        <hr>
+        <div id="summary"></div>
+      </div>
+    </aside>
+  </main>
+
+  <footer id="statusbar" class="statusbar"></footer>
+
+  <div id="selectionBar" class="selection-bar" hidden>
+    <div>
+      <strong id="selectionCount">0</strong> <span id="selectionLabelText">selected</span><br>
+      <small id="selectionTypes"></small>
+    </div>
+    <div class="selection-spacer"></div>
+    <button id="clearSelection">Clear selection</button>
+    <button id="editSelected" class="selection-primary">Edit selected</button>
+  </div>
+
+  <div id="busy" class="busy" hidden>
+    <div class="busy-card">
+      <div class="spinner"></div>
+      <span id="busyText">Processing files…</span>
+    </div>
+  </div>
+
+  <div id="toasts" class="toasts"></div>
+
+  <!-- Modular Scripts -->
+  <script src="js/i18n.js"></script>
+  <script src="js/catalog.js"></script>
+  <script src="js/parser.js"></script>
+  <script src="js/analyzer.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

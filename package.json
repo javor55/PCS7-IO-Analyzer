@@ -1,0 +1,21 @@
+{
+  "name": "pcs7-io-analyzer",
+  "version": "0.12.0",
+  "description": "Client-side STEP 7 / PCS 7 HW Config & Cross-References Analyzer",
+  "main": "index.html",
+  "scripts": {
+    "build": "node scripts/bundle.js",
+    "test": "node scripts/test.js"
+  },
+  "keywords": [
+    "pcs7",
+    "step7",
+    "siemens",
+    "plc",
+    "hardware-configuration",
+    "cross-references",
+    "io-reserves"
+  ],
+  "author": "",
+  "license": "MIT"
+}
